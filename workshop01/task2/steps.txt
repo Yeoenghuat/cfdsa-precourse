@@ -1,0 +1,11 @@
+#Create the network
+docker network create -d bridge mynet
+
+#Create the volume for mySql
+docker volume create myDBvol
+
+#Start up mySQL (without exposing the port to host, use mynet network, map myDBvol to /var/lib/mysql)
+docker run -d -v myDBvol:/var/lib/mysql --network mynet --name mySqlDB stackupiss/northwind-db:v1
+
+#Start up myApp (Expose internal port 3000 to 8000, pass in DB params, use mynet network)
+docker run -d -p 8080:3000 -e DB_HOST=mySqlDB -e DB_USER=root -e DB_PASSWORD=changeit  --network mynet --name myApp stackupiss/northwind-app:v1
