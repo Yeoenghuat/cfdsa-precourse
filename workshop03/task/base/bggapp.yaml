@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bggapp-deploy
+  labels:
+    name: bggappv-deploy
+spec:
+  replicas: 3
+  selector: 
+    matchLabels:
+      name: bggapp-pod
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0    
+  template:
+    metadata:
+      name: bggapp-pod
+      labels:
+        name: bggapp-pod
+    spec:
+      containers:
+        - name: bggapp-container
+          image: bgg-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000 # container port
+          envFrom:
+            - configMapRef:
+                name: bggapp-db-cm
+            - secretRef:
+                name: bggapp-db-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bggapp-svc
+  labels:
+    name: bggapp-svc
+spec:
+  type: ClusterIP
+  selector:
+    name: bggapp-pod
+  ports:
+    - port: 8080 # service port
+      targetPort: 3000 # container port
+---

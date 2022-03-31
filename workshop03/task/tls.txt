@@ -1,0 +1,11 @@
+# Generate key
+openssl genrsa -out bgg 
+
+# Create a self sign certificate
+openssl req -x509 -key bgg -out bgg.crt \
+-days 365 -subj '/CN=dov-144.126.243.156.nip.io' \
+-addext 'extendedKeyUsage = serverAuth'
+
+# Create a tls secret
+kubectl create secret tls bgg-secret \
+--cert=bgg.crt --key=bgg -n bgg-ns
