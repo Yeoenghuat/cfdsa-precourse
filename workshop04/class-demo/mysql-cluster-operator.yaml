@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mydb-secret
+  labels:
+    name: mydb-secret
+type: Opaque
+data:
+  ROOT_PASSWORD: cm9vdHJvb3Q=
+
+---
+apiVersion: mysql.presslabs.org/v1alpha1
+kind: MysqlCluster
+metadata:
+  name: mydb-cluster
+  labels:
+    name: mydb-cluster
+spec:
+  replicas: 3
+  secretName: mydb-secret
+  mysqlVersion: "8.0"
+  volumeSpec: 
+    persistentVolumeClaim:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage:  1Gi
+      storageClassName: do-block-storage
