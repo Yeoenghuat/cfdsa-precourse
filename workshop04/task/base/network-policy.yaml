@@ -1,0 +1,116 @@
+---
+## Block all ingress and egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wpdb-netpol-deny-all
+  labels:
+    name: db-netpol-deny-all
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: database
+  policyTypes:
+    - Ingress
+    - Egress
+---
+## Only allow 3306 from tenant A WP pod
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-netpol-allow-ingress-3306-wp-pod
+  labels:
+    name: db-netpol-allow-ingress-3306-wp-pod
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: database
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            name: wordpress-pod
+# ---
+# ## Only allow 3306 from tenant A WP pod FOR TESTING
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: db-netpol-allow-ingress-3306-wp-pod-netshoot
+#   labels:
+#     name: db-netpol-allow-ingress-3306-wp-pod-netshoot
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app.kubernetes.io/component: database
+#       mysql.presslabs.org/cluster: tenanta-wordpress-mysql-cluster
+#       statefulset.kubernetes.io/pod-name: tenanta-wordpress-mysql-cluster-mysql-0
+#       tenant: tenantA
+#   policyTypes:
+#     - Ingress
+#   ingress:
+#     - from:
+#       - podSelector:
+#           matchLabels:
+#             run: netshoot
+---
+## Block all ingress and egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wpapp-netpol-deny-egress
+  labels:
+    name: wpapp-netpol-deny-egress
+spec:
+  podSelector:
+    matchLabels:
+      name: wordpress-pod
+  policyTypes:
+    - Egress
+---
+## Only allow to connect to tenant A DB pod
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: app-netpol-allow-egress-3306-db-pod
+  labels:
+    name: app-netpol-allow-egress-3306-db-pod
+spec:
+  podSelector:
+    matchLabels:
+      name: wordpress-pod
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/component: database
+      ports:
+        - port: 3306
+          protocol: TCP
+---          
+# # ## Only allow to connect to tenant A DB pod ## FOR TESTING
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: app-netpol-allow-egress-3306-db-pod-netshoot
+#   labels:
+#     name: app-netpol-allow-egress-3306-db-pod-netshoot
+# spec:
+#   podSelector:
+#     matchLabels:
+#       run: netshoot
+#   policyTypes:
+#     - Egress
+#   egress:
+#     - to:
+#       - podSelector:
+#           matchLabels:
+#             app.kubernetes.io/component: database
+#             mysql.presslabs.org/cluster: tenanta-wordpress-mysql-cluster
+#             statefulset.kubernetes.io/pod-name: tenanta-wordpress-mysql-cluster-mysql-0
+#       ports:
+#         - port: 3306
+#           protocol: TCP

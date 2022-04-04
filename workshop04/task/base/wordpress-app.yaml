@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-deploy
+  labels:
+    name: wordpress-deploy
+    app: app
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      name: wordpress-pod
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0    
+  template:
+    metadata:
+      name: wordpress-pod
+      labels:
+        name: wordpress-pod
+    spec:
+      containers:
+        - name: wordpress-container
+          image: wordpress:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80 # container port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-svc
+  labels:
+    name: wordpress-svc
+    app: app
+spec:
+  type: ClusterIP
+  selector:
+    name: wordpress-pod
+  ports:
+    - port: 80 # service port
+      targetPort: 80 # container port
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wordpress-pvc
+  labels:
+    name: wordpress-pvc
+    app: app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: do-block-storage

@@ -1,0 +1,78 @@
+apiVersion: mysql.presslabs.org/v1alpha1
+kind: MysqlCluster
+metadata:
+  name: wordpress-mysql-cluster
+  labels:
+    name: wordpress-mysql-cluster
+    app: db
+spec:
+  replicas: 1
+  secretName: wordpress-mysql-secret
+  mysqlVersion: "8.0"
+  volumeSpec: 
+    persistentVolumeClaim:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage:  1Gi
+      storageClassName: do-block-storage
+  podSpec:
+    labels:
+      tenant: tenantA
+---
+apiVersion: mysql.presslabs.org/v1alpha1
+kind: MysqlDatabase
+metadata:
+  name: wordpress-mysql-database
+spec:
+  database: wordpress-db
+  clusterRef:
+    name: wordpress-mysql-cluster
+---
+apiVersion: mysql.presslabs.org/v1alpha1
+kind: MysqlUser
+metadata:
+  name: wordpress-mysql-user
+spec:
+  user: user
+  clusterRef:
+    name: wordpress-mysql-cluster
+  password:
+    name: wordpress-db-pwd
+    key: PASSWORD
+  allowedHosts:
+    - "%"
+  permissions:
+    - schema: dbname
+      tables: ["*"]
+      permissions:
+        - SELECT
+        - UPDATE
+        - CREATE
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wordpress-mysql-secret
+  labels:
+    name: wordpress-mysql-secret
+type: Opaque
+data:
+  ROOT_PASSWORD: Y2hhbmdlaXQ=
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wordpress-db-pwd
+data:
+  PASSWORD: Y2hhbmdlaXQ= # kust
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wordpress-db-conn
+data:
+  USER: wordpress # kust
+  DB: wordpress-db
+  HOST: wordpress-mysql-cluster-mysql-master.wp.svc.cluster.local
