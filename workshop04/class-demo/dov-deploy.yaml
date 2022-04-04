@@ -15,7 +15,7 @@ metadata:
     name: dov-deploy
   # namespace: myns
 spec:
-  replicas: 3
+  replicas: 4
   selector: 
     matchLabels:
       name: dov-pod
@@ -26,6 +26,13 @@ spec:
         name: dov-pod
       namespace: myns
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  name: dov-pod
+              topologyKey: doks.digitalocean.com/node-id  
       containers:
         - name: dov-container
           image: enghuat91/dov-bear:java-v1
@@ -54,26 +61,3 @@ spec:
   ports:
     - port: 8080 # service port
       targetPort: 3000 # container port
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: dov-ing
-  annotations: {
-    nginx.ingress.kubernetes.io/rewrite-target: /,
-  }
-  labels:
-    name: dov-ing
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: dov-144.126.243.156.nip.io
-      http:
-        paths:
-          - path: /something/dov
-            pathType: Prefix
-            backend:
-              service:
-                name: dov-svc
-                port: 
-                  number: 8080

@@ -1,0 +1,32 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dov-netpol-deny-all
+  labels:
+    name: dov-netpol-deny-all
+spec:
+  podSelector:
+    matchLabels:
+      name: dov-pod
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dov-netpol-allow-8080
+  labels:
+    name: dov-netpol-allow-8080
+spec:
+  podSelector:
+    matchLabels:
+      name: dov-pod
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            run: netshoot-can-access #only allow pod name netshoot-can-access to reach 8080
